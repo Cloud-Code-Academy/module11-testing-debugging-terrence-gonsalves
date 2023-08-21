@@ -10,7 +10,7 @@
  * 2. AFTER INSERT and AFTER UPDATE:
  *    - Check if the Lead can be auto-converted using the `handleLeadAutoConvert` method.
  *
- * Students should be aware:
+ * Students should note:
  * - This trigger contains intentional errors that need to be identified and corrected.
  * - It's essential to test the trigger thoroughly after making any changes to ensure its correct functionality.
  * - Debugging skills will be tested, so students should look out for discrepancies between the expected and actual behavior.
