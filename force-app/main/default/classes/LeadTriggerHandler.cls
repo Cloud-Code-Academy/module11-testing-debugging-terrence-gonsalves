@@ -48,6 +48,7 @@ public with sharing class LeadTriggerHandler {
 	/*
 	 * Requirement Auto Lead Scoring - handleAutoLeadScoring
 	 * Implement logic to automatically assign scores to leads based on specific criteria.
+	 * 18 should be highest possible score a lead can have.
 	 *
 	 * Criteria:
 	 * - If the lead source is from the website and an email exists, increment score by 3 points.
@@ -108,7 +109,7 @@ public with sharing class LeadTriggerHandler {
 		Map<String, Contact> emailToContactMap = new Map<String, Contact>();
 		for (Contact c : [SELECT Id, Email, AccountId FROM Contact WHERE Email IN :leadToEmailMap.values()]) {
 			if (!emailToContactMap.containsKey(c.Email)) {
-				emailToContactMap.put(c.Id, c);
+				emailToContactMap.put(c.Email, c);
 			} else {
 				// If we found another contact with the same email, we don't auto-convert.
 				// So we remove the email from the map.
