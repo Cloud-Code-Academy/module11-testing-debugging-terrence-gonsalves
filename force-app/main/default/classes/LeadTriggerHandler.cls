@@ -13,7 +13,8 @@
  * https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_methods_system_test.htm
  */
 public with sharing class LeadTriggerHandler {
-	/*
+	/* 
+	 * Question 1
 	 * Requirement Lead Title Normalization - handleTitleNormalization
 	 * Occasionally, users input titles in a variety of ways. Streamline these titles for consistency:
 	 *
@@ -45,7 +46,8 @@ public with sharing class LeadTriggerHandler {
 		}
 	}
 
-	/*
+	/* 
+	 * Question 2
 	 * Requirement Auto Lead Scoring - handleAutoLeadScoring
 	 * Implement logic to automatically assign scores to leads based on specific criteria.
 	 * 18 should be highest possible score a lead can have.
@@ -76,7 +78,8 @@ public with sharing class LeadTriggerHandler {
 		}
 	}
 
-	/*
+	/* 
+	 * Question 3
 	 * Requirement Automatic Lead Conversion Based on Email Match - handleLeadAutoConvert
 	 * Whenever a new Lead is created or an existing Lead's email address is updated,
 	 * check for a matching Contact based on the email address. If a single matching
