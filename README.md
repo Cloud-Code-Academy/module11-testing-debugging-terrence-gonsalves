@@ -13,9 +13,7 @@ During this repository, you will deepen your grasp of:
 By excelling in these testing and debugging techniques, you'll bolster your capability to write resilient and fault-tolerant code. This strengthens your expertise in ensuring that Salesforce applications are not only functional but also reliable, emphasizing the best practices that underpin top-tier Salesforce development.
 
 ## Setup
-[Beginner Setup Overview Video](https://vimeo.com/839597882/46fc06d93e)
-
-[Intermediate Setup Overview Video](https://vimeo.com/847130413/955b8bdbe2)
+[Setup Overview](https://learn.cloudcodeacademy.com/courses/salesforce-developer-kickstart-program/lectures/47601132)
 
 ## Getting Started Checklist
 1. Create/Configure a trailhead playground or developer org to do your work throughout this program.
