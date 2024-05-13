@@ -2,6 +2,7 @@
  * The `LeadTriggerHandler` class contains methods designed to handle various business requirements around
  * the Lead object in Salesforce. This includes functionality like normalizing the title field of a lead, 
  * automatically scoring leads based on certain criteria, and auto-converting leads when certain conditions are met.
+ * Create a test class for `LeadTriggerHandler` to ensure all methods work as expected.
  *
  * Students should note:
  * - This class may contain intentional errors that need to be fixed for proper functionality.
