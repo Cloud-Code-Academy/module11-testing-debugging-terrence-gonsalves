@@ -110,12 +110,14 @@ public with sharing class LeadTriggerHandler {
 	public static void handleLeadAutoConvert(List<Lead> leads) {
 		// Step 1: Gather all lead emails
         Map<Id,String> leadToEmailMap = new Map<Id,String>();
+
 		for (Lead lead : leads) {
 			leadToEmailMap.put(lead.Id, lead.Email);
 		}
 
 		// Step 2: Find matching contacts based on email
 		Map<String, Contact> emailToContactMap = new Map<String, Contact>();
+		
 		for (Contact c : [SELECT Id, Email, AccountId FROM Contact WHERE Email IN :leadToEmailMap.values()]) {
 			if (!emailToContactMap.containsKey(c.Email)) {
 				emailToContactMap.put(c.Email, c);
