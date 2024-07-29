@@ -1,6 +1,18 @@
 @IsTest
 public with sharing class LeadTriggerTest {
 
+    @TestSetup
+    static void setUpData() {
+
+        // create test account
+        Account testAccount = new Account(Name='Test Account');
+        insert testAccount;
+    
+        // create test contact
+        Contact testContact = new Contact(FirstName='Test', LastName='Contact', Email='test@example.com', AccountId=testAccount.Id);
+        insert testContact;
+    }
+
     /*
     * Test Title of a Lead has been update to Vice President, Manager, Assistant, Executive.
     */
@@ -104,9 +116,27 @@ public with sharing class LeadTriggerTest {
         // create 3 differing Leads to test all if statements/scores
         List<Lead> ldList = new List<Lead>();
 
-        Lead ldA = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', LeadSource='Website', Email='test@gmail.com', Phone='1234567890'); // 8        
-        Lead ldB = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', Industry='Technology', Phone='123-456-7890'); // 15
-        Lead ldC = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', LeadSource='Website', Email='test@gmail.com', Phone='1234567890', Industry='Technology'); // 18
+        Lead ldA = new Lead(
+            FirstName='Test', 
+            LastName='Lead', 
+            Company='Test Company', 
+            LeadSource='Website', 
+            Email='test@gmail.com', 
+            Phone='1234567890'); // 8        
+        Lead ldB = new Lead(
+            FirstName='Test', 
+            LastName='Lead', 
+            Company='Test Company', 
+            Industry='Technology', 
+            Phone='123-456-7890'); // 15
+        Lead ldC = new Lead(
+            FirstName='Test', 
+            LastName='Lead', 
+            Company='Test Company', 
+            LeadSource='Website', 
+            Email='test@gmail.com', 
+            Phone='1234567890', 
+            Industry='Technology'); // 18
         Lead ldD = new Lead(FirstName='Test', LastName='Lead', Company='Test Company'); // 0
 
         ldList.add(ldA);
@@ -140,9 +170,27 @@ public with sharing class LeadTriggerTest {
         // create 3 differing Leads to test all if statements/scores
         List<Lead> ldList = new List<Lead>();
 
-        Lead ldA = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', LeadSource='Website', Email='test@gmail.com', Phone='1234567890'); // 8        
-        Lead ldB = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', Industry='Technology', Phone='123-456-7890'); // 15
-        Lead ldC = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', LeadSource='Website', Email='test@gmail.com', Phone='1234567890', Industry='Technology'); // 18
+        Lead ldA = new Lead(
+            FirstName='Test', 
+            LastName='Lead', 
+            Company='Test Company', 
+            LeadSource='Website', 
+            Email='test@gmail.com', 
+            Phone='1234567890'); // 8        
+        Lead ldB = new Lead(
+            FirstName='Test', 
+            LastName='Lead', 
+            Company='Test Company', 
+            Industry='Technology', 
+            Phone='123-456-7890'); // 15
+        Lead ldC = new Lead(
+            FirstName='Test', 
+            LastName='Lead', 
+            Company='Test Company', 
+            LeadSource='Website', 
+            Email='test@gmail.com', 
+            Phone='1234567890', 
+            Industry='Technology'); // 18
         Lead ldD = new Lead(FirstName='Test', LastName='Lead', Company='Test Company'); // 0
 
         ldList.add(ldA);
@@ -193,9 +241,69 @@ public with sharing class LeadTriggerTest {
         System.assertEquals(18, ldListCheckDUpdated[0].Lead_Score__c, 'Lead Score should be equal to 18 actual is ' + ldListCheckDUpdated[0].Lead_Score__c);
     }
 
-    @isTest
-    static void testHandleLeadAutoConvert_Insert() {}
+    @IsTest
+    static void testHandleLeadAutoConvert_Insert() {
+
+        // test lead auto-convert on insert
+        Lead testLead = new Lead(FirstName='Test',LastName='Lead',Company='Test Company', Email='test@example.com');
+        
+        Test.startTest();
+        insert testLead;
+        Test.stopTest(); 
+        
+        // verify lead is auto-converted
+        Lead convertedLead = [select Id, IsConverted, ConvertedContactId from Lead where Id = :testLead.Id];
+        System.assert(convertedLead.IsConverted, 'Lead should be converted');
+    }
 
     @isTest
-    static void testHandleLeadAutoConvert_Update() {}
+    static void testHandleLeadAutoConvert_Update() {
+
+        // test lead auto-convert on email update
+        Lead testLead = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', Email='newlead@example.com');
+        insert testLead;
+        
+        testLead.Email = 'test@example.com';
+        
+        Test.startTest();
+        update testLead;
+        Test.stopTest();
+        
+        // verify lead conversion
+        Lead convertedLead = [select Id, IsConverted, ConvertedContactId from Lead where Id = :testLead.Id];
+        System.assert(convertedLead.IsConverted, 'Lead should be converted after email update');
+    }
+
+    @isTest
+    static void testHandleLeadAutoConvert_MultipleContacts() {
+
+        // create another contact with the same email
+        Contact anotherContact = new Contact(FirstName='Another', LastName='Contact', Email='test@example.com');
+        insert anotherContact;
+
+        Lead testLead = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', Email='test@example.com');
+
+        Test.startTest();
+        insert testLead;
+        Test.stopTest();
+
+        // verify lead is not converted
+        Lead unconvertedLead = [select Id, IsConverted from Lead where Id = :testLead.Id];
+        System.assert(!unconvertedLead.IsConverted, 'Lead should not be converted');
+    }
+
+    @isTest
+    static void testHandleLeadAutoConvert_NoMatchingContact() {
+
+        // create Lead
+        Lead testLead = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', Email='notMatch@example.com');
+
+        Test.startTest();
+        insert testLead;
+        Test.stopTest();
+
+        // verify lead is not converted
+        Lead unconvertedLead = [select Id, IsConverted from Lead where Id = :testLead.Id];
+        System.assert(!unconvertedLead.IsConverted, 'Lead should not be converted when no matching contact exists');
+    }
 }
