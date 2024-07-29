@@ -107,53 +107,47 @@ public with sharing class LeadTriggerHandler {
 	 * - One of the errors is recursion related. Check if the lead is already converted or check if the email has changed/is null
 	 * - One of the errors is map related. Make sure you are using the correct contact map key
 	 */
-	public static void handleLeadAutoConvert(List<Lead> leads, Map<Id, Lead> oldLeadsMap) {
-		// Step 1: Gather all lead emails
+	public static void handleLeadAutoConvert(List<Lead> leads, Map<Id, Lead> oldMapLeads) {
+        // Step 1: Gather all lead emails
         Map<Id,String> leadToEmailMap = new Map<Id,String>();
 
-		for (Lead lead : leads) {
-			if (!lead.IsConverted && lead.Email != null) {
-				if (Trigger.isInsert || (oldLeadsMap != null && lead.Email != oldLeadsMap.get(lead.Id).Email)) {
-					leadToEmailMap.put(lead.Id, lead.Email);
-				}
+        for (Lead lead : leads) {
+			if (lead.Email != null && (oldMapLeads == null || oldMapLeads.get(lead.Id).Email != lead.Email) && lead.IsConverted == false) {
+            	leadToEmailMap.put(lead.Id, lead.Email);
 			}
-		}
+        }
 
-		// Step 2: Find matching contacts based on email
-		Map<String, Contact> emailToContactMap = new Map<String, Contact>();
-		
-		for (Contact c : [SELECT Id, Email, AccountId FROM Contact WHERE Email IN :leadToEmailMap.values()]) {
-			String normalizedEmail = c.Email.toLowerCase();
+        // Step 2: Find matching contacts based on email
+        Map<String, Contact> emailToContactMap = new Map<String, Contact>();
 
-			if (!emailToContactMap.containsKey(normalizedEmail)) {
-				emailToContactMap.put(normalizedEmail, c);
-			} else {
-				// If we found another contact with the same email, we don't auto-convert.
-				// So we remove the email from the map.
-				emailToContactMap.remove(normalizedEmail);
-			}
-		}
+        for (Contact c : [SELECT Id, Email, AccountId FROM Contact WHERE Email IN :leadToEmailMap.values()]) {
+            if (!emailToContactMap.containsKey(c.Email)) {
+                emailToContactMap.put(c.Email, c);
+            } else {
+                // If we found another contact with the same email, we don't auto-convert.
+                // So we remove the email from the map.
+                emailToContactMap.remove(c.Email);
+            }
+        }
 
-		// Step 3: Auto-convert leads
-		List<Database.LeadConvert> leadConverts = new List<Database.LeadConvert>();
-		LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = TRUE LIMIT 1];
-		
-		for (Id leadId : leadToEmailMap.keySet()) {
+        // Step 3: Auto-convert leads
+        List<Database.LeadConvert> leadConverts = new List<Database.LeadConvert>();
+        LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = TRUE LIMIT 1];
+        for (Id leadId : leadToEmailMap.keySet()) {
             String leadEmail = leadToEmailMap.get(leadId);
+            if (emailToContactMap.containsKey(leadEmail)) {
+                Database.LeadConvert lc = new Database.LeadConvert();
+                lc.setLeadId(leadId);
+                lc.setContactId(emailToContactMap.get(leadEmail).Id); // Use existing Contact Id
+                lc.setAccountId(emailToContactMap.get(leadEmail).AccountId); // Use existing Account Id
+                lc.setDoNotCreateOpportunity(true); // Assuming we don't want to create an opportunity
+                lc.setConvertedStatus(convertStatus.MasterLabel); // Set the converted status
+                leadConverts.add(lc);
+            }
+        }
 
-			if (leadEmail != null && emailToContactMap.containsKey(leadEmail.toLowerCase())) {
-				Database.LeadConvert lc = new Database.LeadConvert();
-				lc.setLeadId(leadId);
-				lc.setContactId(emailToContactMap.get(leadEmail).Id); // Use existing Contact Id
-				lc.setAccountId(emailToContactMap.get(leadEmail).AccountId); // Use existing Account Id
-				lc.setDoNotCreateOpportunity(true); // Assuming we don't want to create an opportunity
-				lc.setConvertedStatus(convertStatus.MasterLabel); // Set the converted status
-				leadConverts.add(lc);
-			}
-		}
-
-		if (!leadConverts.isEmpty() && !Test.isRunningTest()) {
-        	List<Database.LeadConvertResult> lcrs = Database.convertLead(leadConverts);
-   		}
-	}
+        if (!leadConverts.isEmpty()) {
+            List<Database.LeadConvertResult> lcrs = Database.convertLead(leadConverts);
+        }
+    }
 }

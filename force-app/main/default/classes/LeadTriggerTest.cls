@@ -245,7 +245,7 @@ public with sharing class LeadTriggerTest {
     static void testHandleLeadAutoConvert_Insert() {
 
         // test lead auto-convert on insert
-        Lead testLead = new Lead(FirstName='Test',LastName='Lead',Company='Test Company', Email='test@example.com');
+        Lead testLead = new Lead(FirstName='Test', LastName='Lead', Company='Test Company', Email='test@example.com');
         
         Test.startTest();
         insert testLead;
@@ -266,7 +266,10 @@ public with sharing class LeadTriggerTest {
         testLead.Email = 'test@example.com';
         
         Test.startTest();
-        update testLead;
+        Database.DMLOptions dml = new Database.DMLOptions(); 
+        dml.DuplicateRuleHeader.allowSave = true;
+        dml.DuplicateRuleHeader.runAsCurrentUser = true;
+        Database.update(testLead, dml);
         Test.stopTest();
         
         // verify lead conversion
